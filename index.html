@@ -1,0 +1,180 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>Color to grayscale gradiant</title>
+    <style>
+      body {
+        margin: 0px;
+        padding: 0px;
+      }
+
+
+#x_triangle {
+    display:inline-block;
+    width: 208px;
+    height: 180px;
+    margin: -15px 0 18px 35px;
+}
+#x_node {
+    left:0;
+    top:0;
+    cursor: pointer;
+    position:relative;
+    width:16px;
+    height:16px;
+    border-radius:50%;
+    background:red;
+}
+#x_triangle_border {
+    width: 0;
+    height: 0;
+    border-left: 100px solid transparent;
+    border-right: 100px solid transparent;
+    border-bottom: 180px solid gray;
+}
+
+    </style>
+  </head>
+  <body>
+  
+  <canvas id="myCanvas"></canvas>
+  <script type='text/javascript' src='//code.jquery.com/jquery-2.1.0.js'></script>
+  <script type='text/javascript' src="//code.jquery.com/ui/1.11.2/jquery-ui.min.js"></script>
+    <div id="x_triangle" style="">
+        <div id="x_node" style=""></div>
+         <div id="x_triangle_border"></div>
+    </div>
+     <p id="status"></p>
+     <a href='?triangle'>Triangle</a> - <a href='?women'>Women</a>
+
+    <script>
+
+      var imageObj = new Image();
+
+      function drawImage( r) {
+        var canvas = document.getElementById('myCanvas');
+
+        var context = canvas.getContext('2d');
+        var x = 0;
+        var y = 0;
+
+        canvas.width = imageObj.width;
+        canvas.height = imageObj.height;
+
+        context.drawImage(imageObj, x, y);
+
+        var imageData = context.getImageData(x, y, imageObj.width, imageObj.height);
+        var data = imageData.data;
+
+        for(var i = 0; i < data.length; i += 4) {
+          var brightness = r[0] * data[i] + r[1] * data[i + 1] + r[2] * data[i + 2];
+          data[i] = brightness;  // red
+          data[i + 1] = brightness;  // green
+          data[i + 2] = brightness;// blue
+        }
+
+        // overwrite original image
+        context.putImageData(imageData, x, y);
+      }
+      
+      imageObj.onload = function() {
+        var img = document.createElement('img');
+        img.src = this.src;
+        click({offsetX : 63 , offsetY: 114}); //  [0.34, 0.5, 0.16];
+
+        document.body.insertBefore(img, document.body.firstChild);
+      };
+
+      var img_path = document.location.search.substr(1) || "women";
+      imageObj.src = img_path + '.png';
+
+
+var triangle = $('#x_triangle'),
+    node = $('#x_node'),
+    nwidth = node.width() / 2,
+    nheight = node.height() / 2,
+    width = triangle.width(),
+    height = triangle.height(),
+    interval, uielem;
+
+triangle.click(click);
+node.draggable({
+    scroll: false,
+    drag: drag,
+    start: start,
+    stop: stop
+});
+
+
+
+function click(e) {
+    var xy = calcXY(e.offsetX, e.offsetY);
+    node.css({
+        left: xy.left - nwidth,
+        top: xy.top + nwidth
+    });
+    calcDistance(xy.left - nwidth, xy.top + nwidth);
+}
+
+function drag(e, ui) {
+    var xy = calcXY(ui.position.left, ui.position.top);
+    ui.position.top = xy.top;
+    ui.position.left = xy.left;
+    uielem = ui;
+}
+
+function start(e, ui) {
+    uielem = ui;
+    interval = setInterval(function () {
+        calcDistance(uielem.position.left, uielem.position.top);
+    }, 50);
+}
+
+function stop(e, ui) {
+    clearInterval(interval);
+    var r = calcDistance(ui.position.left, ui.position.top);    
+}
+
+function calcDistance(x, y) {
+    x += nwidth;
+    y -= nheight;
+    var pixels = [ //pythagoras!
+    Math.sqrt(Math.pow(Math.abs(x - width / 2), 2) + Math.pow(y, 2)),
+    Math.sqrt(Math.pow(x, 2) + Math.pow(height - y, 2)),
+    Math.sqrt(Math.pow(width - x, 2) + Math.pow(height - y, 2))],
+        sum = pixels[0] + pixels[1] + pixels[2] // == 100%
+        ;
+    var r = [0,0,0];
+    $.each([0, 1, 2], function (index) {
+        var percent = 1 - (1 / sum * pixels[index]) * 2;
+        r[index] = percent;
+    });
+
+    $('#status').html("red : "+ Math.floor(r[0] * 100) + ", green : "+ Math.floor(r[1] * 100) + ", blue : "+ Math.floor(r[2] * 100));
+    drawImage(r);
+
+    return r;
+}
+
+function calcXY(left, top) {
+    var x = left + nwidth,
+        y = top - nheight,
+        difference = Math.abs(x - width / 2),
+        min_y = height * (difference / (width / 2));
+
+    if (y < min_y) y = min_y;
+    if (x < 0) x = 0;
+    if (y < 0) y = 0;
+    if (x > width) x = width;
+    if (y > height) y = height;
+
+    return {
+        top: y + nheight,
+        left: x - nwidth
+    };
+}
+
+    </script>
+  </body>
+
+</html>      

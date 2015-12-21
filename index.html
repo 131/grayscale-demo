@@ -47,7 +47,7 @@
          <div id="x_triangle_border"></div>
     </div>
      <p id="status"></p>
-     <a href='?triangle'>Triangle</a> - <a href='?women'>Women</a>
+     <a href='?triangle.png'>Triangle</a> - <a href='?women.png'>Women</a>- <a href='?france.jpg'>Carte</a>
 
     <script>
 
@@ -87,8 +87,8 @@
         document.body.insertBefore(img, document.body.firstChild);
       };
 
-      var img_path = document.location.search.substr(1) || "women";
-      imageObj.src = img_path + '.png';
+      var img_path = document.location.search.substr(1) || "women.png";
+      imageObj.src = img_path;
 
 
 var triangle = $('#x_triangle'),
